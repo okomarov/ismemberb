@@ -26,16 +26,16 @@ classdef ismemberb_unit < matlab.unittest.TestCase
             testCase.verifyEqual(apos,cast(epos,'like',apos));
         end
         function repeatAB(testCase)
-            A = [1:10 1:10];
-            B = [8:20 8:20];
+            A = [1:10,10 1:10,10];
+            B = [8,8:20 8,8:20];
             [aidx, apos] = ismember(A,B);
             [eidx, epos] = ismemberb(A,B);
             testCase.verifyEqual(aidx,eidx);
             testCase.verifyEqual(apos,cast(epos,'like',apos));
         end
         function repeatABlegacy(testCase)
-            A = [1:10 1:10];
-            B = [8:20 8:20];
+            A = [1:10,10 1:10,10];
+            B = [8,8:20 8,8:20];
             [aidx, apos] = ismember(A,B,'legacy');
             [eidx, epos] = ismemberb(A,B,[],'legacy');
             testCase.verifyEqual(aidx,eidx);
