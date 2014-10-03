@@ -28,6 +28,13 @@ function [Lia, Locb] = ismemberb(A, B, nblocks, varargin)
 %   % Custom block split
 %   ismemberb(A,B, [2,3])
 %
+%   % Stress test vs ismember()
+%   A           = table(randi(1e6,[3e7,1]),randi(1e6,[3e7,1]));
+%   B           = table(randi(1e6,[3e7,1]),randi(1e6,[3e7,1]));
+%   [idx1,pos1] = ismember(A,B);
+%   [idx2,pos2] = ismemberb(A,B);
+%
+%
 % See also: ISMEMBER
 %
 % Note
@@ -95,12 +102,9 @@ end
 
 % Check if A is vector (relevant for slicing A and final concatenation)
 isvecA = isvector(A);
+dim    = 1;
 if isvecA
-    if isrow(A)
-        dim = 2;
-    else
-        dim = 1;
-    end
+    if isrow(A), dim = 2; end
     rA = numel(A);
 else
     rA = size(A,1);
@@ -140,11 +144,18 @@ for a = 1:nbA
     
     % Extract block a
     posA = edgesA(a)+1:edgesA(a+1);
-    if isvecA, blkA = A(posA); else blkA = A(posA,:); end
+    if isvecA
+        blkA     = A(posA); 
+        out{a,1} = false(size(blkA));
+    else
+        blkA     = A(posA,:);
+        out{a,1} = false(size(blkA,1),1);
+    end
     
     % Preallocate within cell
-    out{a,1} = false(size(blkA));
-    out{a,2} = cast2uint(rB, out{a,1});
+    if nargout == 2
+        out{a,2} = cast2uint(rB, out{a,1});
+    end
     
     % FOR b in B
     for b = 1:nbB
