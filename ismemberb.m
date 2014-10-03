@@ -2,67 +2,65 @@ function [Lia, Locb] = ismemberb(A, B, nblocks, varargin)
 
 % ISMEMBERB Apply ismember with flexible (reduced) memory footprint
 %
-%   ISMEMBERB(A,B,NBLOCKS) Uses almost same syntax as ismember. 
-%                          Additionally, asks the number of blocks 
-%                          to break A and B into. NBLOCKS should 
+%   ISMEMBERB(A,B,NBLOCKS) Uses almost same syntax as ismember.
+%                          Additionally, asks the number of blocks
+%                          to break A and B into. NBLOCKS should
 %                          contain whole positive numbers and can be
-%                          a scalar, which applies to both A and B, 
-%                          or a two element vector. 
+%                          a scalar, which applies to both A and B,
+%                          or a two element vector.
 %                          [Default: NBLOCKS = 2]
-%                           
-%   ISMEMBERB(..., 'legacy' or 'rows') See ismember (equivalent). 
-%                          
-%   
+%
+%   ISMEMBERB(..., 'legacy' or 'rows') See ismember (equivalent).
+%
+%
 %   [LIA, LOCB] = ISMEMBERB(...) See ismember (equivalent).
 %
 %
 % Examples:
 %   % Run unit tests
 %   ismemberb unit
-%   
+%
 %   % Default use
-%   A = randi(100,[1e7,1]); 
+%   A = randi(100,[1e7,1]);
 %   B = randi(100,[1e7,1]);
 %   ismemberb(A,B)
-%   
+%
 %   % Custom block split
 %   ismemberb(A,B, [2,3])
 %
 % See also: ISMEMBER
 %
 % Note
-%   Open the file to see additional explanations on how the 
+%   Open the file to see additional explanations on how the
 %   block processing works.
 
 % How the block processing works:
-%   
+%
 %   Let idx() be the function that returns the TF output of ismember()
 %   Let pos() be the function that returns the positions output (2nd one) of ismember()
-%   Let postf be the TF vector of non null positions
+%   Let postf be the TF vector of non null positions from the last application of pos() 
 %   Let Si be the length of B up to the i-th block included
-% 
+%
 %                                   The processing is sequential:
-%    ___ A___        ___ B___
-%   |        |      |        |      1) ia1 =       idx(a1,b3)       
-%   |   a1   |      |   b1   |      2) ia1 = ia1 | idx(a1,b2)       
+%    ___ A___        ___ B__0
+%   |        |      |        |      1) ia1 =       idx(a1,b3)
+%   |   a1   |      |   b1   |      2) ia1 = ia1 | idx(a1,b2)
 %   |        |      |______S1|      3) ia1 = ia1 | idx(a1,b1)
-%   |________|      |        |      
+%   |________|      |        |
 %   |        |      |   b2   |      4) ia2 =       idx(a2,b3)
 %   |   a2   |      |______S2|      5) ia2 = ia2 | idx(a2,b2)
 %   |        |      |        |      6) ia2 = ia2 | idx(a2,b1)
-%   |________|      |   b3   |      
+%   |________|      |   b3   |
 %                   |________|      7) Lia = [ia1; ia2];
-%                                   
-
-%% SPLIT in blocks of two and use S1 S2 coprrectly
+%
 %                                   1) pa1(postf) = pos(a1,b3)(postf) + S2
-%                                   2) pa1(postf) = pos(a1,b2)(postf) + S2
-%                                   3) pa1(postf) = pos(a1,b1)(postf) + S2
-%                                   
-%                                   4) pa2(postf) = pos(a2,b3)(postf) + S1
+%                                   2) pa1(postf) = pos(a1,b2)(postf) + S1
+%                                   3) pa1(postf) = pos(a1,b1)(postf) +  0
+%
+%                                   4) pa2(postf) = pos(a2,b3)(postf) + S2
 %                                   5) pa2(postf) = pos(a2,b2)(postf) + S1
-%                                   6) pa2(postf) = pos(a2,b1)(postf) + S1
-%                                   
+%                                   6) pa2(postf) = pos(a2,b1)(postf) +  0
+%
 %                                   7) Locb = [pa1; pa2];
 
 % Author: Oleg Komarov (o.komarov11@imperial.ac.uk)
@@ -121,7 +119,7 @@ end
 nbA = min(nbA,rA);
 nbB = min(nbB,rA);
 
-% Block edges 
+% Block edges
 edgesA = cast2uint(rA, ceil(linspace(0,rA,nbA+1)));
 edgesB = cast2uint(rB, ceil(linspace(0,rB,nbB+1)));
 
@@ -163,7 +161,7 @@ for a = 1:nbA
             % [a_1 b_1] out(idx_1) = pos_1(idx_1) + shift_0 and so forth
             out{a,2}(tmp{1}) = cast2uint(rB, tmp{2}(tmp{1})) + edgesB(order(b));
         end
-     end
+    end
 end
 
 % Concatenate all a_i
@@ -175,7 +173,7 @@ end
 end
 
 function y = cast2uint(n,x)
-% Which unsigned integer class  
+% Which unsigned integer class
 [~,bin] = histc(n, [1 256 65536 4294967296 18446744073709551616]);
 if bin == 5
     throwAsCaller(MException('MATLAB:pmaxsize','Maximum variable size allowed by the program is exceeded.'))
